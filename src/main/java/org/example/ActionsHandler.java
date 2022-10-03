@@ -21,7 +21,6 @@ public class ActionsHandler {
             Scanner scanner = new Scanner(new File((String.format("src%1$smain%1$sresources%1$s%2$s", File.separator,filename))));
             scanner.useDelimiter("\\Z");
             fileContent+= scanner.next();
-//                    Scanner scan = new Scanner(new File("C:\\Users\\evgen\\IdeaProjects\\TelegramBot\\src\\main\\resources\\StartMessage.txt"));
         }catch (FileNotFoundException e) {
             e.printStackTrace();
         }
