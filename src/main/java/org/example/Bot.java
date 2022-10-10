@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 public class Bot extends TelegramLongPollingBot{
 
     private SendMessage messager;
+    private ActionsHandler actionsHandler;
 
     public SendMessage getMessager() {
         return messager;
@@ -19,6 +20,7 @@ public class Bot extends TelegramLongPollingBot{
 
     public Bot() {
         messager = new SendMessage();
+        actionsHandler = new ActionsHandler();
     }
 
     @Override
@@ -37,7 +39,7 @@ public class Bot extends TelegramLongPollingBot{
             long userId = update.getMessage().getChatId();
             String message = update.getMessage().getText();
             messager.setChatId(userId);
-            String answer = ActionsHandler.processUserMessage(message);
+            String answer = actionsHandler.processUserMessage(message);
             messager.setText(answer);
 
             try {
