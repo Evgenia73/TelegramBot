@@ -1,13 +1,22 @@
 import org.example.ActionsHandler;
 import org.junit.jupiter.api.Test;
+import junit.framework.TestCase;
+import static org.example.ActionsHandler.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+public class ActionHandlerTest extends TestCase{
 
-public class ActionHandlerTest {
+    public ActionsHandler handler = new ActionsHandler();
 
     @Test
-    void testHelpMessage(){
-        String result = ActionsHandler.readFile("HelpMessage.txt");
-        assertEquals(result,ActionsHandler.processUserMessage("help"));
+    public void testHelpMessage(){
+        String result = readFile("HelpMessage.txt");
+        assertEquals(result,handler.processUserMessage("help"));
+    }
+    public void testHiMessage(){
+        assertEquals("Привет!", handler.processUserMessage("Привет"));
+    }
+
+    public void testDefaultMessage(){
+        assertEquals("Я не знаю такой команды(", handler.processUserMessage("fhewofh"));
     }
 }
