@@ -8,7 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 public class Bot extends TelegramLongPollingBot{
 
     private SendMessage messager;
-    private ActionsHandler actionsHandler;
+    private final ActionsHandler actionsHandler;
 
     public SendMessage getMessager() {
         return messager;
@@ -35,19 +35,33 @@ public class Bot extends TelegramLongPollingBot{
 
     @Override
     public void onUpdateReceived(Update update) {
-        if (update.hasMessage()) {
-            long userId = update.getMessage().getChatId();
-            String message = update.getMessage().getText();
-            messager.setChatId(userId);
-            String answer = actionsHandler.processUserMessage(message);
-            messager.setText(answer);
-
-            try {
-                execute(messager);
-            } catch (Exception e)
-            {
-                e.printStackTrace();
-            }
+        String message = update.getMessage().getText();
+        sendMsg(update.getMessage().getChatId().toString(), message);
+//        if (update.hasMessage()) {
+//            long userId = update.getMessage().getChatId();
+//            String message = update.getMessage().getText();
+//            messager.setChatId(userId);
+//            String answer = actionsHandler.processUserMessage(message);
+//            messager.setText(answer);
+//
+//            try {
+//                execute(messager);
+//            } catch (Exception e)
+//            {
+//                e.printStackTrace();
+//            }
+//        }
+    }
+    public void sendMsg(String chatId, String message){
+        messager.setChatId(chatId);
+        String answer = actionsHandler.processUserMessage(message);
+        messager.setText(answer);
+        try {
+            execute(messager);
+        } catch (Exception e)
+        {
+            e.printStackTrace();
         }
     }
+
 }
