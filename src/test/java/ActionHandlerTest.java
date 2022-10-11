@@ -12,11 +12,11 @@ public class ActionHandlerTest extends TestCase{
         String result = readFile("HelpMessage.txt");
         assertEquals(result,handler.processUserMessage("help"));
     }
-    public void testHiMessage(){
+    public void testHelloMessage(){
         assertEquals("Привет!", handler.processUserMessage("Привет"));
     }
 
     public void testDefaultMessage(){
-        assertEquals("Я не знаю такой команды(", handler.processUserMessage("fhewofh"));
+        assertEquals("Я не знаю такой команды(", handler.processUserMessage("wwr"));
     }
 }
