@@ -1,8 +1,10 @@
 package org.example;
 
+import org.example.domain.Question;
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Scanner;
+import java.util.*;
 
 public class ActionsHandler {
     private String message;
@@ -27,7 +29,7 @@ public class ActionsHandler {
         return fileContent;
 
     }
-    public static String  processUserMessage(String message){
+    public String  processUserMessage(String message){
 
         String result = "";
         switch (message) {
@@ -36,6 +38,22 @@ public class ActionsHandler {
             default -> result += "Я не знаю такой команды(";
         }
         return result;
+    }
+    public static List<Question> questions (String data){
+        List<String> ques = new ArrayList<>();
+        ques = List.of(data.split("#"));
+        List<Question> questions = new ArrayList<>();
+        for(String q : ques){
+//            question[i] = new ArrayList<String>();
+            String[] a = q.split("\\*"); //TODO грамотно обозвать
+            String questionPart = a[0];
+            List<String> variables = Arrays.stream(a).skip(1).toList();
+            String answer = Arrays.stream(a).filter(el -> el.contains("+")).findFirst().orElseThrow();
+
+            questions.add(new Question(questionPart, variables, answer));
+        }
+
+        return questions;
     }
 
 }
