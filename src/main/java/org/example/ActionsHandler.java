@@ -45,12 +45,13 @@ public class ActionsHandler {
         List<Question> questions = new ArrayList<>();
         for(String q : ques){
 //            question[i] = new ArrayList<String>();
-            String[] a = q.split("\\*"); //TODO грамотно обозвать
-            String questionPart = a[0];
-            List<String> variables = Arrays.stream(a).skip(1).toList();
-            String answer = Arrays.stream(a).filter(el -> el.contains("+")).findFirst().orElseThrow();
-
-            questions.add(new Question(questionPart, variables, answer));
+            String[] partsList = q.split("\n\\*\r\n");
+            String questionPart = partsList[0];
+            List<String> variables = new ArrayList<>(Arrays.stream(partsList).skip(1).toList());
+            String answer = Arrays.stream(partsList).filter(el -> el.contains("+")).findFirst().orElseThrow();
+            int index = variables.indexOf(answer);
+            variables.set(index, answer.replaceAll(".$", ""));
+            questions.add(new Question(questionPart, variables, answer.replaceAll(".$", "")));
         }
 
         return questions;
