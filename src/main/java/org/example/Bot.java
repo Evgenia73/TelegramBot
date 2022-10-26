@@ -1,4 +1,6 @@
 package org.example;
+
+import org.example.domain.Question;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -9,9 +11,13 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import static org.example.ActionsHandler.questions;
+import static org.example.ActionsHandler.readFile;
 
 
-public class Bot extends TelegramLongPollingBot{
+public class Bot extends TelegramLongPollingBot {
 
     private SendMessage messager;
     private final ActionsHandler actionsHandler;
@@ -41,20 +47,21 @@ public class Bot extends TelegramLongPollingBot{
 
     @Override
     public void onUpdateReceived(Update update) {
-        if(update.hasMessage()){
-            if(update.getMessage().hasText()){
-                //sendMsg(update.getMessage().getChatId().toString(), update.getMessage().getText());
-                if(update.getMessage().getText().equals("test")){
-                    try {
-                        execute(sendInlineKeyBoardMessage(update.getMessage().getChatId()));
-                    } catch (TelegramApiException e) {
-                        e.printStackTrace();
-                    }
-                }
-                else
-                    sendMsg(update.getMessage().getChatId().toString(), update.getMessage().getText());
+        if (update.hasMessage()) {
+            if (update.getMessage().hasText()) {
+                sendMsg(update.getMessage().getChatId(), update.getMessage().getText());
             }
-        }else if(update.hasCallbackQuery()){
+//                if(update.getMessage().getText().equals("test")){
+//                    try {
+//                        execute(sendInlineKeyBoardMessage(update.getMessage().getChatId()));
+//                    } catch (TelegramApiException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//                else
+//                    sendMsg(update.getMessage().getChatId(), update.getMessage().getText());
+//            }
+        } else if (update.hasCallbackQuery()) {
             try {
                 SendMessage mess = new SendMessage();
                 mess.setText(update.getCallbackQuery().getData());
@@ -66,38 +73,58 @@ public class Bot extends TelegramLongPollingBot{
         }
     }
 
-    public void sendMsg(String chatId, String message){
+    public void sendMsg(long chatId, String message) {
         messager.setChatId(chatId);
-        String answer = actionsHandler.processUserMessage(message);
-        messager.setText(answer);
-        try {
-            execute(messager);
-        } catch (Exception e)
-        {
-            e.printStackTrace();
+        if (message.equals("test")) {
+            List<SendMessage> test = sendInlineKeyBoardMessage(chatId);
+            for (SendMessage sendMessage : test) {
+                messager = sendMessage;
+                try {
+                    execute(messager);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            String answer = actionsHandler.processUserMessage(message);
+            messager.setText(answer);
+            try {
+                execute(messager);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    public static SendMessage sendInlineKeyBoardMessage(long chatId) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        InlineKeyboardButton inlineKeyboardButton1 = new InlineKeyboardButton();
-        InlineKeyboardButton inlineKeyboardButton2 = new InlineKeyboardButton();
-        inlineKeyboardButton1.setText("Тык");
-        inlineKeyboardButton1.setCallbackData("Button Тык has been pressed");
-        inlineKeyboardButton2.setText("Тык2");
-        inlineKeyboardButton2.setCallbackData("Button Тык2 has been pressed");
-        List<InlineKeyboardButton> keyboardButtonsRow1 = new ArrayList<>();
-        List<InlineKeyboardButton> keyboardButtonsRow2 = new ArrayList<>();
-        keyboardButtonsRow1.add(inlineKeyboardButton1);
-        keyboardButtonsRow2.add(inlineKeyboardButton2);
-        List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
-        rowList.add(keyboardButtonsRow1);
-        rowList.add(keyboardButtonsRow2);
-        inlineKeyboardMarkup.setKeyboard(rowList);
-        SendMessage result = new SendMessage();
-        result.setText("Вопрос");
-        result.setChatId(chatId);
-        result.setReplyMarkup(inlineKeyboardMarkup);
-        return result;
+    public static List<SendMessage> sendInlineKeyBoardMessage(long chatId) {
+        List<SendMessage> res = new ArrayList<>();
+
+        List<Question> listQuestions = new ArrayList<>(questions(readFile("test_all.txt")));
+
+        for (Question listQuestion : listQuestions) {
+            SendMessage result = new SendMessage();
+            result.setText(listQuestion.getQuestionPart());
+            List<String> variables = listQuestion.getResponseOptions();
+            InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
+            for (String variable : variables) {
+                InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
+                inlineKeyboardButton.setText(variable);
+                if (variable.equals(listQuestion.getAnswer())) {
+                    inlineKeyboardButton.setCallbackData(listQuestion.getAnswer() + " - Верно!");
+                } else
+                    inlineKeyboardButton.setCallbackData("no");
+                List<InlineKeyboardButton> keyboardButtonsRow = new ArrayList<>();
+                keyboardButtonsRow.add(inlineKeyboardButton);
+                rowList.add(keyboardButtonsRow);
+            }
+            inlineKeyboardMarkup.setKeyboard(rowList);
+            result.setReplyMarkup(inlineKeyboardMarkup);
+            result.setChatId(chatId);
+            res.add(result);
+        }
+        return res;
+
+
     }
 }
