@@ -13,8 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static org.example.ActionsHandler.questions;
-import static org.example.ActionsHandler.readFile;
+import org.example.ActionsHandler;
 
 
 public class Bot extends TelegramLongPollingBot {
@@ -51,16 +50,6 @@ public class Bot extends TelegramLongPollingBot {
             if (update.getMessage().hasText()) {
                 sendMsg(update.getMessage().getChatId(), update.getMessage().getText());
             }
-//                if(update.getMessage().getText().equals("test")){
-//                    try {
-//                        execute(sendInlineKeyBoardMessage(update.getMessage().getChatId()));
-//                    } catch (TelegramApiException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//                else
-//                    sendMsg(update.getMessage().getChatId(), update.getMessage().getText());
-//            }
         } else if (update.hasCallbackQuery()) {
             try {
                 SendMessage mess = new SendMessage();
@@ -75,7 +64,7 @@ public class Bot extends TelegramLongPollingBot {
 
     public void sendMsg(long chatId, String message) {
         messager.setChatId(chatId);
-        if (message.equals("test")) {
+        if (message.equals("test_all")) {
             List<SendMessage> test = sendInlineKeyBoardMessage(chatId);
             for (SendMessage sendMessage : test) {
                 messager = sendMessage;
@@ -96,24 +85,24 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
-    public static List<SendMessage> sendInlineKeyBoardMessage(long chatId) {
+    public List<SendMessage> sendInlineKeyBoardMessage(long chatId) {
         List<SendMessage> res = new ArrayList<>();
 
-        List<Question> listQuestions = new ArrayList<>(questions(readFile("test_all.txt")));
+        List<Question> listQuestions = new ArrayList<>(actionsHandler.questions(actionsHandler.readFile("test_all.txt")));
 
-        for (Question listQuestion : listQuestions) {
+        for (Question question : listQuestions) {
             SendMessage result = new SendMessage();
-            result.setText(listQuestion.getQuestionPart());
-            List<String> variables = listQuestion.getResponseOptions();
+            result.setText(question.getQuestionPart());
+            List<String> variables = question.getResponseOptions();
             InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
             List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
             for (String variable : variables) {
                 InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
                 inlineKeyboardButton.setText(variable);
-                if (variable.equals(listQuestion.getAnswer())) {
-                    inlineKeyboardButton.setCallbackData(listQuestion.getAnswer() + " - Верно!");
+                if (variable.equals(question.getAnswer())) {
+                    inlineKeyboardButton.setCallbackData(question.getAnswer() + " - Верно!");
                 } else
-                    inlineKeyboardButton.setCallbackData("no");
+                    inlineKeyboardButton.setCallbackData(variable + " - Неправильно");
                 List<InlineKeyboardButton> keyboardButtonsRow = new ArrayList<>();
                 keyboardButtonsRow.add(inlineKeyboardButton);
                 rowList.add(keyboardButtonsRow);
@@ -124,7 +113,5 @@ public class Bot extends TelegramLongPollingBot {
             res.add(result);
         }
         return res;
-
-
     }
 }

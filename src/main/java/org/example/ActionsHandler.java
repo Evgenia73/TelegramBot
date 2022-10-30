@@ -17,7 +17,7 @@ public class ActionsHandler {
         this.message = message;
     }
 
-    public static String readFile(String filename){
+    public String readFile(String filename){
         String fileContent="";
         try {
             Scanner scanner = new Scanner(new File((String.format("src%1$smain%1$sresources%1$s%2$s", File.separator,filename))));
@@ -39,7 +39,7 @@ public class ActionsHandler {
         }
         return result;
     }
-    public static List<Question> questions (String data){
+    public List<Question> questions (String data){
         List<String> ques = new ArrayList<>();
         ques = List.of(data.split("#"));
         List<Question> questions = new ArrayList<>();

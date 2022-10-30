@@ -1,7 +1,6 @@
 import org.example.ActionsHandler;
 import org.junit.jupiter.api.Test;
 import junit.framework.TestCase;
-import static org.example.ActionsHandler.*;
 
 public class ActionHandlerTest extends TestCase{
 
@@ -9,7 +8,7 @@ public class ActionHandlerTest extends TestCase{
 
     @Test
     public void testHelpMessage(){
-        String result = readFile("HelpMessage.txt");
+        String result = handler.readFile("HelpMessage.txt");
         assertEquals(result,handler.processUserMessage("help"));
     }
     public void testHiMessage(){
