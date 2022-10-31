@@ -77,6 +77,7 @@ public class Bot extends TelegramLongPollingBot {
         } else {
             String answer = actionsHandler.processUserMessage(message);
             messager.setText(answer);
+            messager.setReplyMarkup(null);
             try {
                 execute(messager);
             } catch (Exception e) {
@@ -90,19 +91,19 @@ public class Bot extends TelegramLongPollingBot {
 
         List<Question> listQuestions = new ArrayList<>(actionsHandler.questions(actionsHandler.readFile("test_all.txt")));
 
-        for (Question question : listQuestions) {
+        for (Question listQuestion : listQuestions) {
             SendMessage result = new SendMessage();
-            result.setText(question.getQuestionPart());
-            List<String> variables = question.getResponseOptions();
+            result.setText(listQuestion.getQuestionPart());
+            List<String> variables = listQuestion.getResponseOptions();
             InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
             List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
             for (String variable : variables) {
                 InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
                 inlineKeyboardButton.setText(variable);
-                if (variable.equals(question.getAnswer())) {
-                    inlineKeyboardButton.setCallbackData(question.getAnswer() + " - Верно!");
+                if (variable.equals(listQuestion.getAnswer())) {
+                    inlineKeyboardButton.setCallbackData(listQuestion.getAnswer() + " - Верно!");
                 } else
-                    inlineKeyboardButton.setCallbackData(variable + " - Неправильно");
+                    inlineKeyboardButton.setCallbackData(variable + " - Неверно");
                 List<InlineKeyboardButton> keyboardButtonsRow = new ArrayList<>();
                 keyboardButtonsRow.add(inlineKeyboardButton);
                 rowList.add(keyboardButtonsRow);
