@@ -1,8 +1,10 @@
 package org.example;
 
+import org.example.domain.Question;
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Scanner;
+import java.util.*;
 
 public class ActionsHandler {
     private String message;
@@ -15,7 +17,7 @@ public class ActionsHandler {
         this.message = message;
     }
 
-    public static String readFile(String filename){
+    public String readFile(String filename){
         String fileContent="";
         try {
             Scanner scanner = new Scanner(new File((String.format("src%1$smain%1$sresources%1$s%2$s", File.separator,filename))));
@@ -27,7 +29,7 @@ public class ActionsHandler {
         return fileContent;
 
     }
-    public static String  processUserMessage(String message){
+    public String  processUserMessage(String message){
 
         String result = "";
         switch (message) {
@@ -36,6 +38,23 @@ public class ActionsHandler {
             default -> result += "Я не знаю такой команды(";
         }
         return result;
+    }
+    public List<Question> questions (String data){
+        List<String> ques = new ArrayList<>();
+        ques = List.of(data.split("#"));
+        List<Question> questions = new ArrayList<>();
+        for(String q : ques){
+//            question[i] = new ArrayList<String>();
+            String[] partsList = q.split("\n\\*\r\n");
+            String questionPart = partsList[0];
+            List<String> variables = new ArrayList<>(Arrays.stream(partsList).skip(1).toList());
+            String answer = Arrays.stream(partsList).filter(el -> el.contains("+")).findFirst().orElseThrow();
+            int index = variables.indexOf(answer);
+            variables.set(index, answer.replaceAll(".$", ""));
+            questions.add(new Question(questionPart, variables, answer.replaceAll(".$", "")));
+        }
+
+        return questions;
     }
 
 }
