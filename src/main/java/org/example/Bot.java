@@ -1,6 +1,7 @@
 package org.example;
 
 import org.example.domain.Question;
+import org.example.question.QuestionDAO;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -17,9 +18,9 @@ import org.example.ActionsHandler;
 
 
 public class Bot extends TelegramLongPollingBot {
-
     private SendMessage messager;
     private final ActionsHandler actionsHandler;
+    private final QuestionDAO questionDAO = new QuestionDAO("test_all.txt");
 
     public SendMessage getMessager() {
         return messager;
@@ -52,10 +53,25 @@ public class Bot extends TelegramLongPollingBot {
             }
         } else if (update.hasCallbackQuery()) {
             try {
-                SendMessage mess = new SendMessage();
-                mess.setText(update.getCallbackQuery().getData());
-                mess.setChatId(update.getCallbackQuery().getMessage().getChatId());
-                execute(mess);
+                SendMessage answer = new SendMessage();
+
+                answer.setChatId(update.getCallbackQuery().getMessage().getChatId());
+                answer.setText(update.getCallbackQuery().getData());
+
+                execute(answer);
+
+                if (questionDAO.getIsRandom()) {
+                    questionDAO.setIsRandom(false);
+                    return;
+                }
+
+                if (questionDAO.can()) {
+                    SendMessage question = sendInlineKeyBoardMessage(update.getCallbackQuery().getMessage().getChatId(),
+                            questionDAO.getNextQuestion());
+                    execute(question);
+                } else {
+                    questionDAO.resetCurrentQuestion();
+                }
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
@@ -64,15 +80,22 @@ public class Bot extends TelegramLongPollingBot {
 
     public void sendMsg(long chatId, String message) {
         messager.setChatId(chatId);
+
         if (message.equals("test_all")) {
-            List<SendMessage> test = sendInlineKeyBoardMessage(chatId);
-            for (SendMessage sendMessage : test) {
-                messager = sendMessage;
-                try {
-                    execute(messager);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+            messager = sendInlineKeyBoardMessage(chatId, questionDAO.getNextQuestion());
+
+            try {
+                execute(messager);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else if (message.equals("test_random")) {
+            messager = sendInlineKeyBoardMessage(chatId, questionDAO.getRandomQuestion());
+
+            try {
+                execute(messager);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         } else {
             String answer = actionsHandler.processUserMessage(message);
@@ -86,33 +109,33 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
-    public List<SendMessage> sendInlineKeyBoardMessage(long chatId) {
-        List<SendMessage> res = new ArrayList<>();
+    public SendMessage sendInlineKeyBoardMessage(long chatId, Question listQuestion) {
+        SendMessage result = new SendMessage();
 
-        List<Question> listQuestions = new ArrayList<>(actionsHandler.questions(actionsHandler.readFile("test_all.txt")));
+        result.setText(listQuestion.getQuestionPart());
+        List<String> variables = listQuestion.getResponseOptions();
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
 
-        for (Question listQuestion : listQuestions) {
-            SendMessage result = new SendMessage();
-            result.setText(listQuestion.getQuestionPart());
-            List<String> variables = listQuestion.getResponseOptions();
-            InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-            List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
-            for (String variable : variables) {
-                InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
-                inlineKeyboardButton.setText(variable);
-                if (variable.equals(listQuestion.getAnswer())) {
-                    inlineKeyboardButton.setCallbackData(listQuestion.getAnswer() + " - Верно!");
-                } else
-                    inlineKeyboardButton.setCallbackData(variable + " - Неверно");
-                List<InlineKeyboardButton> keyboardButtonsRow = new ArrayList<>();
-                keyboardButtonsRow.add(inlineKeyboardButton);
-                rowList.add(keyboardButtonsRow);
-            }
-            inlineKeyboardMarkup.setKeyboard(rowList);
-            result.setReplyMarkup(inlineKeyboardMarkup);
-            result.setChatId(chatId);
-            res.add(result);
+        for (String variable : variables) {
+            InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
+            inlineKeyboardButton.setText(variable);
+
+            if (variable.equals(listQuestion.getAnswer())) {
+                inlineKeyboardButton.setCallbackData(listQuestion.getAnswer() + " - Верно!");
+            } else
+                inlineKeyboardButton.setCallbackData(variable + " - Неверно");
+
+            List<InlineKeyboardButton> keyboardButtonsRow = new ArrayList<>();
+            keyboardButtonsRow.add(inlineKeyboardButton);
+            rowList.add(keyboardButtonsRow);
         }
-        return res;
+
+        inlineKeyboardMarkup.setKeyboard(rowList);
+
+        result.setReplyMarkup(inlineKeyboardMarkup);
+        result.setChatId(chatId);
+
+        return result;
     }
 }
