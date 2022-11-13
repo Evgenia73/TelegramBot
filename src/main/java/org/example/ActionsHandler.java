@@ -1,6 +1,6 @@
 package org.example;
-
 import org.example.domain.Question;
+import org.example.question.QuestionDAO;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,6 +8,13 @@ import java.util.*;
 
 public class ActionsHandler {
     private String message;
+    private final HashMap<String, User> users;
+    private final QuestionDAO questionDAO;
+
+    public ActionsHandler() {
+        users = new HashMap<>();
+        questionDAO = new QuestionDAO(readFile("test_all.txt"));
+    }
 
     public String getMessage() {
         return message;
@@ -27,10 +34,10 @@ public class ActionsHandler {
             e.printStackTrace();
         }
         return fileContent;
-
     }
-    public String  processUserMessage(String message){
-
+    public String processUserMessage(String message, String userId){
+        if (!users.containsKey(userId)) users.put(userId, new User(userId));
+        users.get(userId).setCurrentMessage(message);
         String result = "";
         switch (message) {
             case "Привет" -> result += "Привет!";
@@ -39,23 +46,21 @@ public class ActionsHandler {
         }
         return result;
     }
-    public List<Question> questions (String data){
-        List<String> ques = new ArrayList<>();
-        ques = List.of(data.split("#"));
-        List<Question> questions = new ArrayList<>();
-        for(String q : ques){
-//            question[i] = new ArrayList<String>();
-            String[] partsList = q.split("\n\\*\r\n");
-            String questionPart = partsList[0];
-            List<String> variables = new ArrayList<>(Arrays.stream(partsList).skip(1).toList());
-            String answer = Arrays.stream(partsList).filter(el -> el.contains("+")).findFirst().orElseThrow();
-            int index = variables.indexOf(answer);
-            variables.set(index, answer.replaceAll(".$", ""));
-            questions.add(new Question(questionPart, variables, answer.replaceAll(".$", "")));
-        }
 
-        return questions;
+    public Optional<Question> processKeyBoard(String chatId, String message) {
+        Question currentQuestion = questionDAO.getRandomQuestion();
+        users.get(chatId).setCurrentQuestion(currentQuestion);
+        if (message.equals("test_all")) {
+            return Optional.of(getUsers().get(chatId).getCurrentQuestion());
+        }
+        else if (message.equals("test_random")) {
+            return Optional.of(getUsers().get(chatId).getCurrentQuestion());
+        }
+        else return Optional.empty();
     }
 
+    public HashMap<String, User> getUsers() {
+        return users;
+    }
 }
 
