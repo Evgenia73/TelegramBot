@@ -3,7 +3,6 @@ package org.example;
 import org.example.domain.Question;
 import org.example.question.QuestionDAO;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -12,16 +11,12 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-
-import org.example.ActionsHandler;
+import java.util.Optional;
 
 
 public class Bot extends TelegramLongPollingBot {
     private SendMessage messager;
     private final ActionsHandler actionsHandler;
-    private final QuestionDAO questionDAO = new QuestionDAO("test_all.txt");
-
     public SendMessage getMessager() {
         return messager;
     }
@@ -49,7 +44,7 @@ public class Bot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         if (update.hasMessage()) {
             if (update.getMessage().hasText()) {
-                sendMsg(update.getMessage().getChatId(), update.getMessage().getText());
+                sendMsg(update.getMessage().getChatId().toString(), update.getMessage().getText());
             }
         } else if (update.hasCallbackQuery()) {
             try {
@@ -59,18 +54,10 @@ public class Bot extends TelegramLongPollingBot {
                 answer.setText(update.getCallbackQuery().getData());
 
                 execute(answer);
+                String userId = update.getCallbackQuery().getMessage().getChatId().toString();
 
-                if (questionDAO.getIsRandom()) {
-                    questionDAO.setIsRandom(false);
-                    return;
-                }
-
-                if (questionDAO.can()) {
-                    SendMessage question = sendInlineKeyBoardMessage(update.getCallbackQuery().getMessage().getChatId(),
-                            questionDAO.getNextQuestion());
-                    execute(question);
-                } else {
-                    questionDAO.resetCurrentQuestion();
+                if(actionsHandler.getUsers().get(userId).getCurrentMessage().equals("test_all")){
+                    sendMsg(userId, "test_all");
                 }
             } catch (TelegramApiException e) {
                 e.printStackTrace();
@@ -78,38 +65,28 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
-    public void sendMsg(long chatId, String message) {
+    public void sendMsg(String chatId, String message) {
         messager.setChatId(chatId);
-
-        if (message.equals("test_all")) {
-            messager = sendInlineKeyBoardMessage(chatId, questionDAO.getNextQuestion());
-
-            try {
-                execute(messager);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else if (message.equals("test_random")) {
-            messager = sendInlineKeyBoardMessage(chatId, questionDAO.getRandomQuestion());
-
-            try {
-                execute(messager);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            String answer = actionsHandler.processUserMessage(message);
+        String answer = actionsHandler.processUserMessage(message, chatId);
+        Optional<Question> optionalQuestion = actionsHandler.processKeyBoard(chatId, message);
+        if (optionalQuestion.isPresent())
+            messager = sendInlineKeyBoardMessage(chatId, optionalQuestion.get());
+        else {
             messager.setText(answer);
             messager.setReplyMarkup(null);
-            try {
-                execute(messager);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        }
+        tryExecute(messager);
+    }
+
+    private void tryExecute(SendMessage messager) {
+        try {
+            execute(messager);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    public SendMessage sendInlineKeyBoardMessage(long chatId, Question listQuestion) {
+    public SendMessage sendInlineKeyBoardMessage(String chatId, Question listQuestion) {
         SendMessage result = new SendMessage();
 
         result.setText(listQuestion.getQuestionPart());
