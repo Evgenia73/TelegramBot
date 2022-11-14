@@ -1,14 +1,11 @@
 package org.example.domain;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Question {
     private String questionPart;
-
-
     private List<String> responseOptions;
-
-
     private String answer;
 
     public String getQuestionPart() {
@@ -35,18 +32,14 @@ public class Question {
         this.answer = answer;
     }
 
+    public Question(){
+        this.questionPart = null;
+        this.answer = null;
+        this.responseOptions = new ArrayList<>();
+    }
     public Question(String questionPart, List<String> responseOptions, String answer) {
         this.questionPart = questionPart;
         this.responseOptions = responseOptions;
         this.answer = answer;
-    }
-
-    @Override
-    public String toString() {
-        return "Question{" +
-                "questionPart='" + questionPart + '\'' +
-                ", responseOptions=" + responseOptions +
-                ", answer='" + answer + '\'' +
-                '}';
     }
 }
