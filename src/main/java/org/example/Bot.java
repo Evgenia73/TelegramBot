@@ -1,6 +1,8 @@
 package org.example;
 
+import JDBC.MyConnection;
 import org.example.domain.AnswerMessage;
+import org.example.question.QuestionStorageImpl;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -24,7 +26,7 @@ public class Bot extends TelegramLongPollingBot {
 
     public Bot() {
         messager = new SendMessage();
-        actionsHandler = new ActionsHandler();
+        actionsHandler = new ActionsHandler(new QuestionStorageImpl(MyConnection.getMySQLConnection()));
     }
 
     @Override
