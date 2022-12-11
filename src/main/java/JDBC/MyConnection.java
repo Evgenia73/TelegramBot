@@ -11,7 +11,7 @@ public class MyConnection {
         Connection conn = null;
         try {
             Class.forName("org.postgresql.Driver");
-            conn = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "Evgenia", "4273");
+            conn = DriverManager.getConnection(System.getenv("URL"), System.getenv("USER_SQL"), System.getenv("PASSWORD_SQL"));
 
             if (conn != null) {
                 System.out.println("Connected to the database!");
