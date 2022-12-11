@@ -2,13 +2,14 @@ package org.example.question;
 
 import org.example.QuestionType;
 import org.example.domain.Question;
-import org.postgresql.jdbc.PgArray;
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Класс который взаимодействует с postgreSQl
+ */
 public class QuestionStorageImpl implements QuestionsStorage {
 
     private Connection connection;
@@ -16,6 +17,12 @@ public class QuestionStorageImpl implements QuestionsStorage {
     public QuestionStorageImpl(Connection connection) {
         this.connection = connection;
     }
+
+    /**
+     * Достает рандомный вопрос из баззы данных по заданной теме
+     * @param questionType
+     * @throws SQLException
+     */
     @Override
     public Question getRandomQuestionByTheme(QuestionType questionType) throws SQLException {
         String sql = String.format("select * from questions where theme = '%s' order by random() limit 1", questionType.toString());
