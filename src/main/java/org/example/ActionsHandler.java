@@ -1,9 +1,7 @@
 package org.example;
-import JDBC.MyConnection;
 import org.example.domain.AnswerMessage;
 import org.example.domain.Question;
 import org.example.domain.UserContext;
-import org.example.question.QuestionStorageImpl;
 import org.example.question.QuestionsStorage;
 
 import java.io.File;
@@ -20,9 +18,9 @@ public class ActionsHandler {
     private List<String> themes;
 
 
-    public ActionsHandler() {
+    public ActionsHandler(QuestionsStorage storage) {
         users = new HashMap<>();
-        storage = new QuestionStorageImpl(MyConnection.getMySQLConnection());
+        this.storage = storage;
         themes = Arrays.stream(QuestionType.values()).map(Enum::toString).toList();
     }
 
