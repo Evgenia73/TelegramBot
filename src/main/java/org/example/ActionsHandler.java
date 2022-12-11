@@ -2,7 +2,6 @@ package org.example;
 import JDBC.MyConnection;
 import org.example.domain.AnswerMessage;
 import org.example.domain.Question;
-//import org.example.question.QuestionDAO;
 import org.example.domain.UserContext;
 import org.example.question.QuestionStorageImpl;
 import org.example.question.QuestionsStorage;
@@ -11,6 +10,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.SQLException;
 import java.util.*;
+
 
 public class ActionsHandler {
     private String message;
@@ -34,6 +34,9 @@ public class ActionsHandler {
         this.message = message;
     }
 
+    /**
+     * Чтение данных из файла
+     */
     public String readFile(String filename){
         String fileContent="";
         try {
@@ -47,6 +50,11 @@ public class ActionsHandler {
     }
 
 
+    /**
+     * Обрабатывает сообщение от пользователя и возращает ответ, в зависимости от контекста сообщения данного пользователя
+     * @param message
+     * @param userId
+     */
     public AnswerMessage processUserMessage(String message, String userId){
         User user;
         if (!users.containsKey(userId)) {
@@ -88,7 +96,8 @@ public class ActionsHandler {
                         // TODO проверка коректности темы
                         user.setQuestionType(QuestionType.valueFromString(message));
                         user.setContext(UserContext.AnsweringQuestion);
-                        result.setStringResponse(String.format("Вы выбрали тему %s! Чтобы начать введите команду test", message));
+                        result.setStringResponse(String.format("Вы выбрали тему %s! Чтобы начать введите команду test",
+                                message));
                     }
                     else if (user.getContext() == UserContext.AnsweringQuestion) {
                         if (user.getCurrentQuestion().checkAnswer(message))
