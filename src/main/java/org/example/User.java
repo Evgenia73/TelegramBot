@@ -1,13 +1,32 @@
 package org.example;
 
 import org.example.domain.Question;
+import org.example.domain.UserContext;
 
 public class User {
     private String telegramId;
     private String currentMessage;
     private Question currentQuestion;
 
+    private UserContext context;
 
+    public UserContext getContext() {
+        return context;
+    }
+
+    public void setContext(UserContext context) {
+        this.context = context;
+    }
+
+    public QuestionType getQuestionType() {
+        return questionType;
+    }
+
+    public void setQuestionType(QuestionType questionType) {
+        this.questionType = questionType;
+    }
+
+    private QuestionType questionType;
     public User(){
     }
     public User(String telegramId)

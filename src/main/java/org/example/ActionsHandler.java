@@ -1,19 +1,29 @@
 package org.example;
+import JDBC.MyConnection;
+import org.example.domain.AnswerMessage;
 import org.example.domain.Question;
-import org.example.question.QuestionDAO;
+//import org.example.question.QuestionDAO;
+import org.example.domain.UserContext;
+import org.example.question.QuestionStorageImpl;
+import org.example.question.QuestionsStorage;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.sql.SQLException;
 import java.util.*;
 
 public class ActionsHandler {
     private String message;
     private final HashMap<String, User> users;
-    private final QuestionDAO questionDAO;
+    private final QuestionsStorage storage;
+
+    private List<String> themes;
+
 
     public ActionsHandler() {
         users = new HashMap<>();
-        questionDAO = new QuestionDAO(readFile("test_all.txt"));
+        storage = new QuestionStorageImpl(MyConnection.getMySQLConnection());
+        themes = Arrays.stream(QuestionType.values()).map(Enum::toString).toList();
     }
 
     public String getMessage() {
@@ -35,30 +45,62 @@ public class ActionsHandler {
         }
         return fileContent;
     }
-    public String processUserMessage(String message, String userId){
-        if (!users.containsKey(userId)) users.put(userId, new User(userId));
-        users.get(userId).setCurrentMessage(message);
-        String result = "";
+
+
+    public AnswerMessage processUserMessage(String message, String userId){
+        User user;
+        if (!users.containsKey(userId)) {
+            user = new User(userId);
+            users.put(userId, user);
+        }
+        else
+            user = users.get(userId);
+
+        user.setCurrentMessage(message);
+        AnswerMessage result = new AnswerMessage();
+
         switch (message) {
-            case "Привет" -> result += "Привет!";
-            case "help" -> result += readFile("HelpMessage.txt");
-            default -> result += "Я не знаю такой команды(";
+            case "Привет":
+                    result.setStringResponse("Привет!");
+                    break;
+            case "help":
+                result.setStringResponse(readFile("HelpMessage.txt"));
+                break;
+            case "Выбрать тему": {
+                result.setStringResponse("Выберите понравившуюся тему");
+                result.setResponseList(themes);
+                user.setContext(UserContext.ChoosingTheme);
+                break;
+            }
+            case "test":
+                user.setContext(UserContext.AnsweringQuestion);
+                try {
+                    Question q = storage.getRandomQuestionByTheme(user.getQuestionType());
+                    user.setCurrentQuestion(q);
+                    result.setResponseList(q.getResponseOptions());
+                    result.setStringResponse(q.getQuestionPart());
+                } catch (SQLException e) {
+                    result.setStringResponse("Ошибка");
+                }
+                break;
+            default:
+                    if (user.getContext() == UserContext.ChoosingTheme) {
+                        // TODO проверка коректности темы
+                        user.setQuestionType(QuestionType.valueFromString(message));
+                        user.setContext(UserContext.AnsweringQuestion);
+                        result.setStringResponse(String.format("Вы выбрали тему %s! Чтобы начать введите команду test", message));
+                    }
+                    else if (user.getContext() == UserContext.AnsweringQuestion) {
+                        if (user.getCurrentQuestion().checkAnswer(message))
+                            result.setStringResponse("Верно");
+                        else
+                            result.setStringResponse("Неверно");
+                    } else
+                        result.setStringResponse("Я не знаю такой команды(");
+                    break;
         }
         return result;
     }
-
-    public Optional<Question> processKeyBoard(String chatId, String message) {
-        Question currentQuestion = questionDAO.getRandomQuestion();
-        users.get(chatId).setCurrentQuestion(currentQuestion);
-        if (message.equals("test_all")) {
-            return Optional.of(getUsers().get(chatId).getCurrentQuestion());
-        }
-        else if (message.equals("test_random")) {
-            return Optional.of(getUsers().get(chatId).getCurrentQuestion());
-        }
-        else return Optional.empty();
-    }
-
     public HashMap<String, User> getUsers() {
         return users;
     }
