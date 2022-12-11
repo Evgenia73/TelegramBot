@@ -35,16 +35,25 @@ public class Bot extends TelegramLongPollingBot {
         actionsHandler = new ActionsHandler();
     }
 
+    /**
+     * Возвращает имя бота, указанное при регистрации
+     */
     @Override
     public String getBotUsername() {
         return "BOT_NAME";
     }
 
+    /**
+     * Возвращает токен бота
+     */
     @Override
     public String getBotToken() {
         return System.getenv("BOT_TOKEN");
     }
 
+    /**
+     * Создаем сообщение, которое отправит бот пользователю в ответ
+     */
     @Override
     public void onUpdateReceived(Update update) {
         if (update.hasMessage()) {
@@ -78,6 +87,12 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
+    /**
+     * Обработка команд для тестирования, если ни одной из них не было получено, то обработать
+     * полученное сообщение с помощью processUserMessage
+     * @param chatId
+     * @param message
+     */
     public void sendMsg(long chatId, String message) {
         messager.setChatId(chatId);
 
@@ -109,6 +124,13 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
+    /**
+     * Создаем кнопки с вариантами выбора ответа (для тестирования пользователя)
+     * реагируем на выбор варианта ответа
+     * @param chatId - айди чата
+     * @param listQuestion - список вопросов
+     * @return
+     */
     public SendMessage sendInlineKeyBoardMessage(long chatId, Question listQuestion) {
         SendMessage result = new SendMessage();
 

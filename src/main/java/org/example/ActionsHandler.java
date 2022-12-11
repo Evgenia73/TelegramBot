@@ -17,6 +17,11 @@ public class ActionsHandler {
         this.message = message;
     }
 
+    /**
+     * Чтение файла
+     * @param filename - имя считываемого файла
+     * @return
+     */
     public String readFile(String filename){
         String fileContent="";
         try {
@@ -29,6 +34,12 @@ public class ActionsHandler {
         return fileContent;
 
     }
+
+    /**
+     * Реакция на шаблонные сообщения, в том числе на неизвестные команды
+     * @param message
+     * @return
+     */
     public String  processUserMessage(String message){
 
         String result = "";
@@ -39,6 +50,11 @@ public class ActionsHandler {
         }
         return result;
     }
+
+    /**
+     * Формат, в котором будут выводиться варианты ответа для тестирования пользователя и реакция на них
+     * @param data
+     */
     public List<Question> questions (String data){
         List<String> ques = new ArrayList<>();
         ques = List.of(data.split("#"));
